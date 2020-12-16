@@ -18,21 +18,29 @@ function sanitiseId(resourceId) {
 function awaitSubjects(subjectQuery) {
   const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
   const validSubjectId = sanitiseId(queryParams.subject)
-  const subjectsPath = validSubjectId ? `/subjects/${validSubjectId}` : '/subjects/queued'
+  let subjectsPath
+
+  if (validSubjectId) {
+    subjectsPath = `/subjects/${validSubjectId}`
+    console.info(`Overriding subject queue, fetching subject ${validSubjectId}`)
+  } else {
+    subjectsPath = '/subjects/queued'
+    console.info('Loading subjects from queue')
+  }
 
   return apiClient.get(subjectsPath, subjectQuery)
-  .catch((error) => {
-    if (error.message.indexOf('please try again') === -1) {
-      throw error;
-    } else {
-      return new Promise((resolve, reject) => {
-        const fetchSubjectsAgain = (() => apiClient.get(subjectsPath, subjectQuery)
-        .then(resolve)
-        .catch(reject));
-        setTimeout(fetchSubjectsAgain, 2000);
-      });
-    }
-  });
+    .catch((error) => {
+      if (error.message.indexOf('please try again') === -1) {
+        throw error;
+      } else {
+        return new Promise((resolve, reject) => {
+          const fetchSubjectsAgain = (() => apiClient.get(subjectsPath, subjectQuery)
+          .then(resolve)
+          .catch(reject));
+          setTimeout(fetchSubjectsAgain, 2000);
+        });
+      }
+    });
 }
 
 function awaitSubjectSet(workflow) {
