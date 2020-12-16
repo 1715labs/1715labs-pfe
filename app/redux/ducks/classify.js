@@ -14,7 +14,10 @@ function sanitiseId(resourceId) {
 }
 
 // Fetch subjects, with optional override if a suitable query string parameter is present to get a
-// specific subject by ID
+// specific subject by ID.
+//
+// Note that the message about overriding the subject queue will be logged twice, probably since the
+// queue will try to refill itself due to only having one subject in it.
 function awaitSubjects(subjectQuery) {
   const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
   const validSubjectId = sanitiseId(queryParams.subject)
