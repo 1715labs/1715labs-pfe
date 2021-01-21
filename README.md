@@ -10,3 +10,4 @@ Not an exhaustive list, but the main points:
 - Session IDs are intentionally broken; Chrome has an issue with allowing scripts in iFrames to access `localStorage` in MTurk.
 - The deploy process is now done through GitHub Actions, rather than run locally.
 - Local config settings can be set with a `.env` file.
+- The subject queue can be overriden with a specific subject ID using the `subject` query string parameter. This allows for one subject per HIT / Task.

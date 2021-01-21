@@ -7,21 +7,45 @@ import tasks from '../../classifier/tasks';
 import * as translations from './translations';
 import appendQuery from 'append-query'
 import { crowdHandler } from '../../crowd_handler';
+import qs from 'qs';
 
+// Check that we have a valid-looking subject ID
+function sanitiseId(resourceId) {
+  const re = /^\d+$/
+  return re.test(resourceId) ? resourceId : undefined;
+}
+
+// Fetch subjects, with optional override if a suitable query string parameter is present to get a
+// specific subject by ID.
+//
+// Note that the message about overriding the subject queue will be logged twice, probably since the
+// queue will try to refill itself due to only having one subject in it.
 function awaitSubjects(subjectQuery) {
-  return apiClient.get('/subjects/queued', subjectQuery)
-  .catch((error) => {
-    if (error.message.indexOf('please try again') === -1) {
-      throw error;
-    } else {
-      return new Promise((resolve, reject) => {
-        const fetchSubjectsAgain = (() => apiClient.get('/subjects/queued', subjectQuery)
-        .then(resolve)
-        .catch(reject));
-        setTimeout(fetchSubjectsAgain, 2000);
-      });
-    }
-  });
+  const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
+  const validSubjectId = sanitiseId(queryParams.subject)
+  let subjectsPath
+
+  if (validSubjectId) {
+    subjectsPath = `/subjects/${validSubjectId}`
+    console.info(`Overriding subject queue, fetching subject ${validSubjectId}`)
+  } else {
+    subjectsPath = '/subjects/queued'
+    console.info('Loading subjects from queue')
+  }
+
+  return apiClient.get(subjectsPath, subjectQuery)
+    .catch((error) => {
+      if (error.message.indexOf('please try again') === -1) {
+        throw error;
+      } else {
+        return new Promise((resolve, reject) => {
+          const fetchSubjectsAgain = (() => apiClient.get(subjectsPath, subjectQuery)
+          .then(resolve)
+          .catch(reject));
+          setTimeout(fetchSubjectsAgain, 2000);
+        });
+      }
+    });
 }
 
 // Add the crowd provider's query params to the subject location to support the secure image server
