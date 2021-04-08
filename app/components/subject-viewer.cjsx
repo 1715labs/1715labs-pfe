@@ -14,6 +14,8 @@ getSubjectLocations = require('../lib/get-subject-locations').default
 
 NOOP = Function.prototype
 
+# Where conditionals for showing buttons also have `and false`, they're hidden for 1715 Labs
+
 subjectTypes = (subject) ->
   allTypes = []
   (subject?.locations ? []).forEach (location) ->
@@ -232,13 +234,14 @@ module.exports = createReactClass
             <span>
               <FlagSubjectButton className="secret-button" classification={@props.classification} />{' '}
             </span>}
-          {if @props.subject?.metadata?
+          {if @props.subject?.metadata? and false
             <span>
               <button type="button" className="secret-button" aria-label="Metadata" title="Metadata" onClick={@showMetadata}>
                 <i className="fa fa-info-circle fa-fw"></i>
               </button>{' '}
             </span>}
-          {if @props.subject?
+
+          {if @props.subject? and false
             if @props.user?
               <span>
                 {if @props.project? and not @props.workflow?.configuration?.disable_favorites
