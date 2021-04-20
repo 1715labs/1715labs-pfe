@@ -5,6 +5,7 @@ import apiClient from 'panoptes-client/lib/api-client';
 import Dialog from 'modal-form/dialog';
 import Translate from 'react-translate-component';
 import { Markdown } from 'markdownz';
+import qs from 'qs'
 import { Provider } from 'react-redux';
 import animatedScrollTo from 'animated-scrollto';
 import classnames from 'classnames';
@@ -47,11 +48,17 @@ export default class Tutorial extends React.Component {
   static startIfNecessary(tutorial, user, projectPreferences, geordi, store) {
     if (tutorial) {
       this.checkIfCompleted(tutorial, user, projectPreferences).then((completed) => {
-        if (!completed) {
+        const noTutorialQueryParam = this.getNoTutorialQueryParam()
+        if (!completed && !noTutorialQueryParam) {
           this.start(tutorial, user, projectPreferences, geordi, store);
         }
       });
     }
+  }
+
+  static getNoTutorialQueryParam() {
+    const queryParams = qs.parse(window.location.search.slice(1));
+    return queryParams['no_tutorial'] === 'true'
   }
 
   static checkIfCompleted(tutorial, user, projectPreferences) {
