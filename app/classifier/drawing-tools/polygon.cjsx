@@ -90,7 +90,6 @@ module.exports = createReactClass
           {unless @props.mark.closed
             <g>
               <circle className="clickable" r={finisherRadius} cx={firstPoint.x} cy={firstPoint.y} stroke="transparent" onClick={@handleFinishClick} />
-              <circle className="clickable" r={finisherRadius} cx={lastPoint.x} cy={lastPoint.y} onClick={@handleFinishClick} />
             </g>}
         </g>}
     </DrawingToolRoot>
