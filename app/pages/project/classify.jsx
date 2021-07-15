@@ -37,7 +37,7 @@ window.addEventListener('beforeunload', e => {
 
 function onClassificationSaved(actualClassification) {
   Split.classificationCreated(actualClassification); // Metric log needs classification id
-  crowdHandler.triggerCallback(actualClassification);
+  crowdHandler.addClassificationId(actualClassification.id);
 }
 
 function isPresent(val) {
@@ -107,8 +107,13 @@ export class ProjectClassifyPage extends React.Component {
 
     if (upcomingSubjects.length !== prevProps.upcomingSubjects.length) {
       // Refill the subject queue when we're down to the last subject in the current batch.
-      if (upcomingSubjects.length < 2) {
-        this.refillSubjectQueue();
+      // But since we're in MTurk mode, we don't actually want that
+      // if (upcomingSubjects.length < 2) {
+      //   this.refillSubjectQueue();
+      // }
+      if (upcomingSubjects.length === 0) {
+        console.info('No more subjects in the queue, triggering crowd callback...')
+        crowdHandler.triggerCallback()
       }
     }
 
@@ -261,6 +266,11 @@ export class ProjectClassifyPage extends React.Component {
     const { classification, upcomingSubjects, workflow } = this.props;
     const { demoMode } = this.state;
     const subject = upcomingSubjects[0];
+
+    if (!subject) {
+      return (<span>Finished, please wait...</span>)
+    }
+
     if (classification && classification.links.workflow === workflow.id) {
       return (
         <Classifier

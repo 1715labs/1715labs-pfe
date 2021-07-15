@@ -14,33 +14,61 @@ function sanitiseId(resourceId) {
 }
 
 // Fetch subjects, with optional override if a suitable query string parameter is present to get a
-// specific subject by ID.
-//
-// Note that the message about overriding the subject queue will be logged twice, probably since the
-// queue will try to refill itself due to only having one subject in it.
+// specific subject or subjects by ID.
 function awaitSubjects(subjectQuery) {
-  const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
-  const validSubjectId = sanitiseId(queryParams.subject)
-  let subjectsPath
-
-  if (validSubjectId) {
-    subjectsPath = `/subjects/${validSubjectId}`
-    console.info(`Overriding subject queue, fetching subject ${validSubjectId}`)
+  const { subject: subjectQueryParam } = qs.parse(window.location.search, { ignoreQueryPrefix: true })
+  if (subjectQueryParam) {
+    console.info('Subject IDs passed as URL param, attempting to resolve...')
+    return awaitSubjectsFromURL(subjectQueryParam)
   } else {
-    subjectsPath = '/subjects/queued'
-    console.info('Loading subjects from queue')
+    console.info('No subject IDs found in URL params, falling back to queue endpoint')
+    return awaitSubjectsFromQueueEndpoint(subjectQuery)
   }
+}
 
-  return apiClient.get(subjectsPath, subjectQuery)
+function awaitSubjectsFromQueueEndpoint(subjectQuery) {
+  return apiClient.get('/subjects/queued', subjectQuery)
+    .then(subjects => {
+      // We only ever want one subject at a time for each HIT when fetching queued subjects
+      return [subjects[0]]
+    })
     .catch((error) => {
       if (error.message.indexOf('please try again') === -1) {
         throw error;
       } else {
         return new Promise((resolve, reject) => {
-          const fetchSubjectsAgain = (() => apiClient.get(subjectsPath, subjectQuery)
+          const fetchSubjectsAgain = (() => apiClient.get('/subjects/queued', subjectQuery)
           .then(resolve)
           .catch(reject));
           setTimeout(fetchSubjectsAgain, 2000);
+        });
+      }
+    });
+}
+
+function awaitSubjectsFromURL(subjectQueryParam) {
+  const subjectIdArray = Array.isArray(subjectQueryParam) ? subjectQueryParam : [subjectQueryParam]
+  const promises = subjectIdArray.map(sanitiseId).map(fetchSubjectById)
+  return Promise.all(promises)
+    .then(response => {
+      // The API client always returns an array, so we need to flatten the array of arrays
+      const subjects = response.map(([subject]) => subject)
+      return subjects
+    })
+}
+
+function fetchSubjectById(subjectId) {
+  const subjectPath = `/subjects/${subjectId}`
+  return apiClient.get(subjectPath)
+    .catch((error) => {
+      if (error.message.indexOf('please try again') === -1) {
+        throw error;
+      } else {
+        return new Promise((resolve, reject) => {
+          const fetchSubjectAgain = (() => apiClient.get(subjectsPath)
+          .then(resolve)
+          .catch(reject));
+          setTimeout(fetchSubjectAgain, 2000);
         });
       }
     });

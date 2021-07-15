@@ -20,12 +20,17 @@ import qs from 'qs'
 
 class NoopHandler {
   constructor(queryParams) {
+    this._classificationIds = []
     this._queryParams = queryParams
     this.previewMode = false
     console.group('1715 Labs Crowd Handler config')
     console.info('CLICKWORKER_POSTBACK_URL', process.env.CLICKWORKER_POSTBACK_URL)
     console.info('MTURK_POSTBACK_URL', process.env.MTURK_POSTBACK_URL)
     console.groupEnd()
+  }
+
+  addClassificationId(id) {
+    this._classificationIds.push(id)
   }
 
   // Extract the keys passed via the arguments from the queryParams property, and return as
@@ -48,9 +53,8 @@ class NoopHandler {
   }
 
   // Trigger the postback process for completing a task on the crowd platform.
-  triggerCallback(classification) {
+  triggerCallback() {
     console.info('NoopHandler, so nothing to do here')
-    console.info('Classification:', classification)
     return
   }
 }
@@ -63,9 +67,9 @@ class ClickworkerHandler extends NoopHandler {
     }
   }
 
-  triggerCallback(classification) {
+  triggerCallback() {
     const redirectQueryParams = {
-      'classification_id': classification.id,
+      'classification_ids': this._classificationIds.join(','),
       'job_id': this._queryParams['job_id'],
       'task_id': this._queryParams['task_id'],
       'user_id': this._queryParams['user_id'],
@@ -119,9 +123,9 @@ class MTurkHandler extends NoopHandler {
     form.submit();
   }
 
-  triggerCallback(classification) {
+  triggerCallback() {
     const assignmentId = this._queryParams['assignmentId']
-    const classificationId = classification.id
+    const classificationIds = this._classificationIds.join(',')
 
     if (!assignmentId) {
       console.error('MTurk `assignmentId` not found, skipping postback')
@@ -129,7 +133,7 @@ class MTurkHandler extends NoopHandler {
     }
 
     const path = process.env.MTURK_POSTBACK_URL
-    this.createFormAndPost(path, { assignmentId, classificationId });
+    this.createFormAndPost(path, { assignmentId, classificationIds });
   }
 }
 
