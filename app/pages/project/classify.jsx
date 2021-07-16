@@ -268,7 +268,7 @@ export class ProjectClassifyPage extends React.Component {
     const subject = upcomingSubjects[0];
 
     if (!subject) {
-      return (<span>Finished, please wait...</span>)
+      return (<span>Loading, please wait...</span>)
     }
 
     if (classification && classification.links.workflow === workflow.id) {
