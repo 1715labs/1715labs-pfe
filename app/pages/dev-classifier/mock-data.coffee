@@ -523,7 +523,7 @@ workflow = apiClient.type('workflows').create
 labs1715QueryPresent = ->
   urlParams = new URLSearchParams(window.location.search);
   labs1715QueryPresent = urlParams.get('1715labs');
-  console.log(labs1715QueryPresent);
+  # console.log(labs1715QueryPresent);
   if labs1715QueryPresent then true else false
 
 subject = apiClient.type('subjects').create
