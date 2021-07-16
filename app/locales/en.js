@@ -6,7 +6,7 @@ export default {
     close: 'Close',
     continue: 'Continue',
     detailsSubTaskFormSubmitButton: 'OK',
-    done: 'Done',
+    done: 'Next',
     doneAndTalk: 'Done & Talk',
     dontShowMinicourse: 'Do not show mini-course in the future',
     letsGo: 'Let’s go!',
