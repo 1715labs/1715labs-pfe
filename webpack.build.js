@@ -39,6 +39,7 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'CLICKWORKER_POSTBACK_URL',
       'HEAD_COMMIT',
+      'VERCEL_GIT_COMMIT_SHA',
       'MTURK_POSTBACK_URL',
       'NODE_ENV',
       'PANOPTES_API_APPLICATION',
